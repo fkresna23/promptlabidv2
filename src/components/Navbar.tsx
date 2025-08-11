@@ -9,11 +9,6 @@ import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs";
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
-  // Check if Clerk is configured
-  const isClerkConfigured = typeof window !== 'undefined' && 
-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && 
-    !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.includes('your_clerk_publishable_key_here');
 
   return (
     <nav className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
@@ -48,53 +43,39 @@ export function Navbar() {
             </Link>
             
             {/* Authentication - Desktop */}
-            {isClerkConfigured ? (
-              <>
-                <SignedOut>
-                  <Button variant="outline" asChild>
-                    <Link href="/sign-in">Sign In</Link>
-                  </Button>
-                  <Button variant="premium" asChild>
-                    <Link href="/sign-up" className="flex items-center space-x-2">
-                      <Crown className="h-4 w-4" />
-                      <span>Get Started</span>
-                    </Link>
-                  </Button>
-                </SignedOut>
-                
-                <SignedIn>
-                  <Button variant="outline" asChild>
-                    <Link href="/dashboard">Dashboard</Link>
-                  </Button>
-                  <Button variant="premium" asChild>
-                    <Link href="/upgrade" className="flex items-center space-x-2">
-                      <Crown className="h-4 w-4" />
-                      <span>Upgrade</span>
-                    </Link>
-                  </Button>
-                  <UserButton 
-                    appearance={{
-                      elements: {
-                        avatarBox: "w-8 h-8"
-                      }
-                    }}
-                  />
-                </SignedIn>
-              </>
-            ) : (
-              // Fallback UI when Clerk is not configured
-              <>
-                <Button variant="outline" asChild>
-                  <Link href="/sign-in">Sign In</Link>
-                </Button>
-                <Button variant="premium" asChild>
-                  <Link href="/sign-up" className="flex items-center space-x-2">
-                    <Crown className="h-4 w-4" />
-                    <span>Get Started</span>
-                  </Link>
-                </Button>
-              </>
-            )}
+            <SignedOut>
+              <Button variant="outline" asChild>
+                <Link href="/sign-in">Sign In</Link>
+              </Button>
+              <Button variant="premium" asChild>
+                <Link href="/sign-up" className="flex items-center space-x-2">
+                  <Crown className="h-4 w-4" />
+                  <span>Get Started</span>
+                </Link>
+              </Button>
+            </SignedOut>
+            
+            <SignedIn>
+              <Button variant="outline" asChild>
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href="/admin">Admin</Link>
+              </Button>
+              <Button variant="premium" asChild>
+                <Link href="/upgrade" className="flex items-center space-x-2">
+                  <Crown className="h-4 w-4" />
+                  <span>Upgrade</span>
+                </Link>
+              </Button>
+              <UserButton 
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8"
+                  }
+                }}
+              />
+            </SignedIn>
           </div>
 
           {/* Mobile menu button */}
@@ -148,55 +129,41 @@ export function Navbar() {
               
               {/* Mobile Action Buttons */}
               <div className="space-y-2 pt-4 border-t">
-                {isClerkConfigured ? (
-                  <>
-                    <SignedOut>
-                      <Button variant="outline" className="w-full" asChild>
-                        <Link href="/sign-in">Sign In</Link>
-                      </Button>
-                      <Button variant="premium" className="w-full" asChild>
-                        <Link href="/sign-up" className="flex items-center justify-center space-x-2">
-                          <Crown className="h-4 w-4" />
-                          <span>Get Started</span>
-                        </Link>
-                      </Button>
-                    </SignedOut>
-                    
-                    <SignedIn>
-                      <Button variant="outline" className="w-full" asChild>
-                        <Link href="/dashboard">Dashboard</Link>
-                      </Button>
-                      <Button variant="premium" className="w-full" asChild>
-                        <Link href="/upgrade" className="flex items-center justify-center space-x-2">
-                          <Crown className="h-4 w-4" />
-                          <span>Upgrade to Premium</span>
-                        </Link>
-                      </Button>
-                      <div className="pt-2">
-                        <UserButton 
-                          appearance={{
-                            elements: {
-                              avatarBox: "w-8 h-8"
-                            }
-                          }}
-                        />
-                      </div>
-                    </SignedIn>
-                  </>
-                ) : (
-                  // Fallback UI when Clerk is not configured
-                  <>
-                    <Button variant="outline" className="w-full" asChild>
-                      <Link href="/sign-in">Sign In</Link>
-                    </Button>
-                    <Button variant="premium" className="w-full" asChild>
-                      <Link href="/sign-up" className="flex items-center justify-center space-x-2">
-                        <Crown className="h-4 w-4" />
-                        <span>Get Started</span>
-                      </Link>
-                    </Button>
-                  </>
-                )}
+                <SignedOut>
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link href="/sign-in">Sign In</Link>
+                  </Button>
+                  <Button variant="premium" className="w-full" asChild>
+                    <Link href="/sign-up" className="flex items-center justify-center space-x-2">
+                      <Crown className="h-4 w-4" />
+                      <span>Get Started</span>
+                    </Link>
+                  </Button>
+                </SignedOut>
+                
+                <SignedIn>
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link href="/dashboard">Dashboard</Link>
+                  </Button>
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link href="/admin">Admin</Link>
+                  </Button>
+                  <Button variant="premium" className="w-full" asChild>
+                    <Link href="/upgrade" className="flex items-center justify-center space-x-2">
+                      <Crown className="h-4 w-4" />
+                      <span>Upgrade to Premium</span>
+                    </Link>
+                  </Button>
+                  <div className="pt-2">
+                    <UserButton 
+                      appearance={{
+                        elements: {
+                          avatarBox: "w-8 h-8"
+                        }
+                      }}
+                    />
+                  </div>
+                </SignedIn>
               </div>
             </div>
           </div>

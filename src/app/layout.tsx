@@ -18,30 +18,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Check if Clerk keys are configured
-  const isClerkConfigured = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && 
-    !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.includes('your_clerk_publishable_key_here');
-
-  if (isClerkConfigured) {
-    return (
-      <ClerkProvider>
-        <html lang="en">
-          <body className={`${inter.className} antialiased`}>
-            <Navbar />
-            <main>{children}</main>
-          </body>
-        </html>
-      </ClerkProvider>
-    );
-  }
-
-  // Fallback without Clerk when not configured
   return (
-    <html lang="en">
-      <body className={`${inter.className} antialiased`}>
-        <Navbar />
-        <main>{children}</main>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body className={`${inter.className} antialiased`}>
+          <Navbar />
+          <main>{children}</main>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

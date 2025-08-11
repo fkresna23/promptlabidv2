@@ -8,18 +8,10 @@ import Link from "next/link";
 import { samplePrompts } from "@/data/prompts";
 
 export default async function DashboardPage() {
-  // Check if Clerk is configured
-  const isClerkConfigured = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && 
-    !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.includes('your_clerk_publishable_key_here');
-
-  let userId = null;
-  if (isClerkConfigured) {
-    const authResult = await auth();
-    userId = authResult.userId;
-    
-    if (!userId) {
-      redirect('/sign-in')
-    }
+  const { userId } = await auth()
+  
+  if (!userId) {
+    redirect('/sign-in')
   }
 
   // Mock user data - in a real app, this would come from your database
