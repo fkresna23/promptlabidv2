@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,9 +17,19 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { SimpleRichTextEditor } from "@/components/SimpleRichTextEditor";
-import { categories } from "@/data/prompts";
+import { useRouter } from 'next/navigation'
+
+interface Category {
+  id: string
+  name: string
+  slug: string
+  description?: string
+}
 
 export default function CreatePromptPage() {
+  const router = useRouter()
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [content, setContent] = useState('')
@@ -27,8 +37,29 @@ export default function CreatePromptPage() {
   const [tags, setTags] = useState<string[]>([])
   const [newTag, setNewTag] = useState('')
   const [isPremium, setIsPremium] = useState(false)
-  const [difficulty, setDifficulty] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Beginner')
-  const [type, setType] = useState<'ChatGPT' | 'Claude' | 'Midjourney' | 'DALL-E' | 'Stable Diffusion' | 'Universal'>('Universal')
+  const [difficulty, setDifficulty] = useState<'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'>('BEGINNER')
+  const [type, setType] = useState<'TEXT' | 'CREATIVE' | 'CODING' | 'BUSINESS' | 'ACADEMIC' | 'CONVERSATIONAL'>('TEXT')
+
+  // Fetch categories on component mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      console.log('📋 Fetching categories from database...')
+      try {
+        const response = await fetch('/api/categories')
+        if (response.ok) {
+          const data = await response.json()
+          console.log('✅ Categories loaded:', data.categories)
+          setCategories(data.categories)
+        } else {
+          console.error('❌ Error fetching categories:', response.status)
+        }
+      } catch (error) {
+        console.error('❌ Error fetching categories:', error)
+      }
+    }
+    
+    fetchCategories()
+  }, [])
 
   const addTag = () => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
@@ -41,48 +72,70 @@ export default function CreatePromptPage() {
     setTags(tags.filter(tag => tag !== tagToRemove))
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    console.log('🚀 Using NEW database-connected handleSave function!')
+    
     // Validation
     if (!title.trim()) {
-      alert('Please enter a title for your prompt');
-      return;
+      alert('Please enter a title for your prompt')
+      return
     }
     if (!description.trim()) {
-      alert('Please enter a description for your prompt');
-      return;
+      alert('Please enter a description for your prompt')
+      return
     }
     if (!content.trim()) {
-      alert('Please enter the prompt content');
-      return;
+      alert('Please enter the prompt content')
+      return
     }
     if (!category) {
-      alert('Please select a category for your prompt');
-      return;
+      alert('Please select a category for your prompt')
+      return
     }
 
-    // In a real app, you would save to your database
+    setLoading(true)
+
     const promptData = {
       title: title.trim(),
       description: description.trim(),
       content: content.trim(),
-      category,
+      categoryId: category,
       tags,
       isPremium,
       difficulty,
       type,
-      author: 'Admin', // In real app, get from auth context
-      createdAt: new Date().toISOString().split('T')[0],
-      updatedAt: new Date().toISOString().split('T')[0],
-      likes: 0,
-      uses: 0,
-      id: `prompt_${Date.now()}` // Generate a unique ID
-    };
+    }
     
-    console.log('Saving prompt:', promptData);
-    alert('Prompt saved successfully! (In a real app, this would save to the database)');
-    
-    // Optionally redirect to the prompts list
-    // window.location.href = '/admin/prompts';
+    console.log('📤 Sending data to API:', promptData)
+
+    try {
+      const response = await fetch('/api/prompts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(promptData),
+      })
+
+      console.log('📥 API Response status:', response.status)
+      console.log('📥 API Response ok:', response.ok)
+
+      if (response.ok) {
+        await response.json()
+        console.log('✅ Prompt successfully saved to database!')
+        alert('Prompt created successfully and saved to database!')
+        router.push('/admin/prompts')
+      } else {
+        const error = await response.json()
+        console.error('❌ API Error:', error)
+        alert(`Error creating prompt: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Error creating prompt:', error)
+      alert('An error occurred while creating the prompt')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handlePreview = () => {
@@ -109,9 +162,9 @@ export default function CreatePromptPage() {
                 <Eye className="h-4 w-4 mr-2" />
                 Preview
               </Button>
-              <Button onClick={handleSave}>
+              <Button onClick={handleSave} disabled={loading}>
                 <Save className="h-4 w-4 mr-2" />
-                Save Prompt
+                {loading ? 'Saving...' : 'Save Prompt'}
               </Button>
             </div>
           </div>
@@ -194,7 +247,7 @@ export default function CreatePromptPage() {
                     <option value="">Select a category</option>
                     {categories.map((cat) => (
                       <option key={cat.id} value={cat.name}>
-                        {cat.icon} {cat.name}
+                        {cat.name}
                       </option>
                     ))}
                   </select>

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { ClerkProvider } from '@clerk/nextjs';
+import { UserSync } from '@/components/UserSync';
 
 const inter = Inter({
   subsets: ["latin"],
@@ -22,6 +23,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className={`${inter.className} antialiased`}>
+          <UserSync />
           <Navbar />
           <main>{children}</main>
         </body>

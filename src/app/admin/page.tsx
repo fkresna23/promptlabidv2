@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, BookOpen, BarChart3, Settings, Plus } from "lucide-react";
 import Link from "next/link";
+import { getAdminStats } from '@/lib/admin-data'
 
 export default async function AdminPage() {
   const { userId } = await auth()
@@ -15,15 +16,7 @@ export default async function AdminPage() {
   // In a real app, you'd check if the user has admin privileges
   // For now, we'll allow all authenticated users to access admin
   
-  // Mock admin statistics
-  const adminStats = {
-    totalUsers: 1250,
-    totalPrompts: 156,
-    activeUsers: 890,
-    premiumUsers: 45,
-    newUsersToday: 12,
-    promptsAddedToday: 8
-  };
+  const { stats, recentActivity } = await getAdminStats()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -44,9 +37,9 @@ export default async function AdminPage() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{adminStats.totalUsers}</div>
+              <div className="text-2xl font-bold">{stats.totalUsers}</div>
               <p className="text-xs text-muted-foreground">
-                +{adminStats.newUsersToday} today
+                Registered users
               </p>
             </CardContent>
           </Card>
@@ -57,35 +50,35 @@ export default async function AdminPage() {
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{adminStats.totalPrompts}</div>
+              <div className="text-2xl font-bold">{stats.totalPrompts}</div>
               <p className="text-xs text-muted-foreground">
-                +{adminStats.promptsAddedToday} today
+                Total prompts in system
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+              <CardTitle className="text-sm font-medium">Published Prompts</CardTitle>
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{adminStats.activeUsers}</div>
+              <div className="text-2xl font-bold">{stats.publishedPrompts}</div>
               <p className="text-xs text-muted-foreground">
-                Last 30 days
+                Live prompts
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Premium Users</CardTitle>
+              <CardTitle className="text-sm font-medium">Premium Prompts</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{adminStats.premiumUsers}</div>
+              <div className="text-2xl font-bold">{stats.premiumPrompts}</div>
               <p className="text-xs text-muted-foreground">
-                {((adminStats.premiumUsers / adminStats.totalUsers) * 100).toFixed(1)}% conversion
+                {stats.totalPrompts > 0 ? ((stats.premiumPrompts / stats.totalPrompts) * 100).toFixed(1) : 0}% premium
               </p>
             </CardContent>
           </Card>
@@ -174,33 +167,40 @@ export default async function AdminPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center justify-between py-2 border-b">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm">New user registered: john.doe@example.com</span>
-                </div>
-                <span className="text-xs text-gray-500">2 minutes ago</span>
+              {/* Recent Users */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-gray-900">Recent Users</h4>
+                {recentActivity.users.map((user) => (
+                  <div key={user.id} className="flex items-center justify-between py-2 border-b">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm">
+                        New user: {user.firstName} {user.lastName} ({user.email})
+                      </span>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-center justify-between py-2 border-b">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm">Prompt submitted: &ldquo;Advanced SEO Strategy&rdquo;</span>
-                </div>
-                <span className="text-xs text-gray-500">15 minutes ago</span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                  <span className="text-sm">User upgraded to premium: jane.smith@example.com</span>
-                </div>
-                <span className="text-xs text-gray-500">1 hour ago</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                  <span className="text-sm">Prompt edited: &ldquo;Content Marketing Guide&rdquo;</span>
-                </div>
-                <span className="text-xs text-gray-500">2 hours ago</span>
+
+              {/* Recent Prompts */}
+              <div className="space-y-2 mt-6">
+                <h4 className="text-sm font-medium text-gray-900">Recent Prompts</h4>
+                {recentActivity.prompts.map((prompt) => (
+                  <div key={prompt.id} className="flex items-center justify-between py-2 border-b">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span className="text-sm">
+                        New prompt: &ldquo;{prompt.title}&rdquo; by {prompt.author.firstName} {prompt.author.lastName}
+                      </span>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {new Date(prompt.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </CardContent>

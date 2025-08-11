@@ -1,0 +1,165 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  clerkUserId String   @unique
+  email       String   @unique
+  firstName   String?
+  lastName    String?
+  imageUrl    String?
+  role        UserRole @default(USER)
+  status      UserStatus @default(ACTIVE)
+  subscription SubscriptionType @default(FREE)
+  
+  // Relationships
+  prompts     Prompt[]
+  likes       Like[]
+  uses        PromptUse[]
+  favorites   Favorite[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("users")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  icon        String?
+  color       String?
+  
+  // Relationships
+  prompts     Prompt[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("categories")
+}
+
+model Prompt {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  content     String
+  
+  // Metadata
+  difficulty  PromptDifficulty @default(BEGINNER)
+  type        PromptType @default(TEXT)
+  isPremium   Boolean @default(false)
+  isPublished Boolean @default(false)
+  
+  // SEO and organization
+  slug        String   @unique
+  tags        String?  // Store as JSON string for SQLite compatibility
+  
+  // Statistics
+  likes       Int      @default(0)
+  uses        Int      @default(0)
+  views       Int      @default(0)
+  
+  // Relationships
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  
+  // Related models
+  promptLikes Like[]
+  promptUses  PromptUse[]
+  favorites   Favorite[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("prompts")
+}
+
+model Like {
+  id       String @id @default(cuid())
+  userId   String
+  promptId String
+  
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt   Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, promptId])
+  @@map("likes")
+}
+
+model PromptUse {
+  id       String @id @default(cuid())
+  userId   String
+  promptId String
+  
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt   Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  @@map("prompt_uses")
+}
+
+model Favorite {
+  id       String @id @default(cuid())
+  userId   String
+  promptId String
+  
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt   Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, promptId])
+  @@map("favorites")
+}
+
+// Enums
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+}
+
+enum SubscriptionType {
+  FREE
+  PREMIUM
+  ENTERPRISE
+}
+
+enum PromptDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum PromptType {
+  TEXT
+  CREATIVE
+  CODING
+  BUSINESS
+  ACADEMIC
+  CONVERSATIONAL
+}
