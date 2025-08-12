@@ -184,7 +184,7 @@ export async function POST(request: NextRequest) {
         isPremium: isPremium || false,
         difficulty: difficulty || 'BEGINNER',
         type: type || 'TEXT',
-        isPublished: user.role === 'ADMIN' // Auto-publish for admins
+        isPublished: true // Always publish for now - can be changed later
       },
       include: {
         category: true,

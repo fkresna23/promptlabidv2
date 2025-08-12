@@ -1,7 +1,9 @@
-import { db } from '@/lib/db'
+const { db } = require('./src/lib/db');
 
-export async function getHomePageData() {
+async function testHomepageData() {
   try {
+    console.log('🔍 Testing homepage data function...');
+    
     const [categories, featuredPrompts, stats] = await Promise.all([
       // Get categories with prompt counts
       db.category.findMany({
@@ -49,39 +51,20 @@ export async function getHomePageData() {
         db.promptUse.count(),
         db.like.count()
       ])
-    ])
+    ]);
 
-    return {
-      categories: categories.map(cat => ({
-        ...cat,
-        promptsCount: cat._count.prompts
-      })),
-      featuredPrompts: featuredPrompts.map(prompt => ({
-        ...prompt,
-        tags: prompt.tags ? JSON.parse(prompt.tags) : [],
-        likesCount: prompt.likes,
-        usesCount: prompt.uses,
-        favoritesCount: 0 // We can add actual count later if needed
-      })),
-      stats: {
-        totalPrompts: stats[0],
-        totalUsers: stats[1],
-        totalUses: stats[2],
-        totalLikes: stats[3]
-      }
-    }
+    console.log('✅ Categories:', categories.length);
+    console.log('✅ Featured prompts:', featuredPrompts.length);
+    console.log('✅ Stats:', stats);
+    
+    console.log('\n📝 Sample prompt:', featuredPrompts[0]);
+    console.log('\n📂 Sample category:', categories[0]);
+    
   } catch (error) {
-    console.error('Error fetching homepage data:', error)
-    // Return fallback data
-    return {
-      categories: [],
-      featuredPrompts: [],
-      stats: {
-        totalPrompts: 0,
-        totalUsers: 0,
-        totalUses: 0,
-        totalLikes: 0
-      }
-    }
+    console.error('❌ Error:', error);
+  } finally {
+    await db.$disconnect();
   }
 }
+
+testHomepageData();

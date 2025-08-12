@@ -4,9 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search, Crown, ThumbsUp, Copy, Zap, Shield, Users } from "lucide-react";
 import Link from "next/link";
-import { categories, samplePrompts } from "@/data/prompts";
+import { getHomePageData } from "@/lib/homepage-data";
 
-export default function Home() {
+export default async function Home() {
+  const { categories, featuredPrompts, stats } = await getHomePageData()
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -99,16 +101,16 @@ export default function Home() {
           
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {categories.map((category) => (
-              <Link key={category.id} href={`/category/${category.name.toLowerCase()}`}>
+              <Link key={category.id} href={`/category/${category.slug}`}>
                 <Card className="hover:shadow-lg transition-shadow cursor-pointer group h-full">
                   <CardHeader className="text-center">
                     <div className="flex flex-col items-center space-y-3">
                       <div className="w-16 h-16 bg-gradient-to-br from-purple-50 to-blue-50 rounded-full flex items-center justify-center group-hover:from-purple-100 group-hover:to-blue-100 transition-colors">
-                        <span className="text-3xl">{category.icon}</span>
+                        <span className="text-3xl">{category.icon || '📝'}</span>
                       </div>
                       <div>
                         <CardTitle className="text-lg text-center group-hover:text-purple-600 transition-colors">{category.name}</CardTitle>
-                        <CardDescription className="text-center">{category.count} prompts</CardDescription>
+                        <CardDescription className="text-center">{category.promptsCount} prompts</CardDescription>
                       </div>
                     </div>
                   </CardHeader>
@@ -131,7 +133,7 @@ export default function Home() {
           </div>
           
           <div className="grid lg:grid-cols-2 gap-8">
-            {samplePrompts.slice(0, 4).map((prompt) => (
+            {featuredPrompts.slice(0, 4).map((prompt) => (
               <Card key={prompt.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -151,11 +153,11 @@ export default function Home() {
                     <div className="flex items-center space-x-4 text-sm text-gray-500">
                       <div className="flex items-center space-x-1">
                         <ThumbsUp className="h-4 w-4" />
-                        <span>{prompt.likes}</span>
+                        <span>{prompt.likesCount}</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Copy className="h-4 w-4" />
-                        <span>{prompt.uses}</span>
+                        <span>{prompt.usesCount}</span>
                       </div>
                       <Badge variant="outline">{prompt.difficulty}</Badge>
                     </div>
@@ -165,7 +167,7 @@ export default function Home() {
                 <CardContent>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <Badge variant="outline">{prompt.category}</Badge>
+                      <Badge variant="outline">{prompt.category.name}</Badge>
                       <Badge variant="outline">{prompt.type}</Badge>
                     </div>
                     <Button variant="outline" size="sm">
